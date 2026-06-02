@@ -1197,6 +1197,8 @@ GffObj::GffObj(GffReader& gfrd, BEDLine& bedline):GSeg(0,0),
 	parent=NULL;
 	udata=0;
 	flags=0;
+	gff_level=0;        // not necessarily aliased by `flags` under MinGW bitfield packing
+	flag_USER_FLAGS=0;  // must be zeroed or isNascent()/getGuideStatus() read garbage
 	CDstart=0;
 	CDend=0;
 	CDphase=0;
@@ -1246,6 +1248,8 @@ GffObj::GffObj(GffReader &gfrd, GffLine& gffline):
   parent=NULL;
   udata=0;
   flags=0;
+  gff_level=0;        // not necessarily aliased by `flags` under MinGW bitfield packing
+  flag_USER_FLAGS=0;  // must be zeroed or isNascent()/getGuideStatus() read garbage
   CDstart=0;
   CDend=0;
   CDphase=0;

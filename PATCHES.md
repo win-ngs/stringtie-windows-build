@@ -27,3 +27,31 @@
 - Location: repository root
 - Change: ignore generated `dist/`, `*.o`, `*.a`, and `*.exe` outputs.
 - Reason: `make release` creates intermediate objects, static libraries, and `stringtie.exe`; these should not appear as commit candidates.
+
+## nascent guide generation guard
+
+- File: `stringtie-3.0.3.offline-patch/stringtie.cpp`
+- Location: main BAM-read bundling loop
+- Change: reset `bundle_last_kept_guide` after calling `generateAllNascents()`.
+- Reason: nascent guides should be generated once for the guides just added to a bundle. Re-generating them for every following read creates duplicate synthetic guides and can destabilize `-N` / `--nasc` runs.
+
+## nascent parent-intron coverage guard
+
+- File: `stringtie-3.0.3.offline-patch/rlink.cpp`
+- Location: `guides_pushmaxflow_onestep()`
+- Change: only apply the optional nascent last-exon coverage adjustment when `nascentFrom()` returns a parent guide and a next parent exon exists.
+- Reason: terminal or orphan synthetic nascents do not always have a parent intron to measure. The original code dereferenced that state unconditionally and could abort or crash in UCRT64 builds.
+
+## synthetic nascent shutdown ownership guard
+
+- File: `stringtie-3.0.3.offline-patch/stringtie.cpp`
+- Location: final reference-guide cleanup
+- Change: mark `refguides[i].synrnas` as non-owning before `refguides.Clear()`.
+- Reason: synthetic nascent guide records are only needed while the process is producing output. Avoiding ownership during shutdown prevents MinGW heap cleanup and `GffNames` reference errors after the output has already been written.
+
+## GffObj bitfield initialization (root cause of guided/nascent output nondeterminism)
+
+- File: `stringtie-3.0.3.offline-patch/gclib/gff.cpp` (parsing constructors `GffObj(GffReader&, GffLine&)` and `GffObj(GffReader&, BEDLine&)`) and `stringtie-3.0.3.offline-patch/gclib/gff.h` (the `GffObj(const char*)` and `GffObj(bool newTranscript,...)` constructors).
+- Location: after the existing `flags=0;` in each GffObj constructor.
+- Change: explicitly zero `gff_level` and `flag_USER_FLAGS` as well.
+- Reason: `gff_level:4` and `flag_USER_FLAGS:8` share a union with the 32-bit `flags`, but they are declared as `unsigned int` bitfields after a run of `bool` bitfields. Under MSYS2 MinGW/UCRT GCC the type change starts a new storage unit, so those two fields are NOT aliased by `flags`; `flags=0` therefore leaves them uninitialized. They are then read from `operator new` heap memory, which is zeroed on Linux (fresh pages) but arbitrary on Windows and varies per run. `gff_level` feeds the guide location sort (`gfo_cmpByLoc`), so guides at identical coordinates were ordered nondeterministically; `flag_USER_FLAGS` backs `getGuideStatus()` and `isNascent()`, so guide/nascent classification was nondeterministic. The combined effect was that every guided/nascent test (`short_guided`, `mix_reads_guided`, `-N`, `--nasc`) produced different output each run and never matched the expected GTF. Zeroing the two fields makes all bundled tests deterministic and identical to the upstream expected output.

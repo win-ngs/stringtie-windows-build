@@ -860,6 +860,12 @@ public:
        uptr=NULL;
        ulink=NULL;
        flags=0;
+       // MinGW/GCC may place gff_level and flag_USER_FLAGS in a storage unit
+       // not aliased by `flags` (mixed bool/unsigned bitfields), so `flags=0`
+       // does not necessarily clear them. Zero them explicitly to avoid reading
+       // uninitialized heap (breaks location sort and isNascent() on Windows).
+       gff_level=0;
+       flag_USER_FLAGS=0;
        udata=0;
        parent=NULL;
        ftype_id=-1;
@@ -887,6 +893,12 @@ public:
        uptr=NULL;
        ulink=NULL;
        flags=0;
+       // MinGW/GCC may place gff_level and flag_USER_FLAGS in a storage unit
+       // not aliased by `flags` (mixed bool/unsigned bitfields), so `flags=0`
+       // does not necessarily clear them. Zero them explicitly to avoid reading
+       // uninitialized heap (breaks location sort and isNascent() on Windows).
+       gff_level=0;
+       flag_USER_FLAGS=0;
        udata=0;
        parent=NULL;
        if (newTranscript) {
