@@ -802,8 +802,12 @@ if (ballgown)
 			 } while (cend_changed);
 		 }
 	 } //adjusted currentend and checked for overlapping reference transcripts
-	 if (guides && genNascent && bundle_last_kept_guide>=0)
+	 if (guides && genNascent && bundle_last_kept_guide>=0) {
 	     bundle->generateAllNascents(bundle_last_kept_guide, ref_rc);
+	     // Generate nascents once for the guides just added to this bundle;
+	     // otherwise every following read would duplicate the same synthetic guides.
+	     bundle_last_kept_guide=-1;
+	 }
 	 GReadAlnData alndata(brec, 0, nh, hi, tinfo);
      bool ovlpguide=bundle->evalReadAln(alndata, xstrand);
 
@@ -975,6 +979,13 @@ if(!mergeMode) {
  }
 
 
+ // Synthetic nascent guides are process-lifetime tracking records.
+ // Keep them non-owning during shutdown to avoid MinGW heap cleanup issues.
+ for(int i=0;i<refguides.Count();i++) {
+	 refguides[i].synrnas.setFreeItem(false);
+ }
+ // Release guide-owned GffObj instances before dropping the shared name table.
+ refguides.Clear();
  gffnames_unref(gseqNames); //deallocate names collection
 
 

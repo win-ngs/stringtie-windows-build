@@ -73,7 +73,6 @@ static int coordStableCmp(const pointer p1, const pointer p2) {
     return 0;
 }
 
-
 CJunction* add_junction(int start, int end, GList<CJunction>& junction, char strand) {
 
 	int oidx=-1;
@@ -12831,37 +12830,41 @@ void guides_pushmaxflow_onestep(int gno,GIntHash<int>& gpos,GPVec<CGraphnode>& n
 			if(nasc) { // try to add extra coverages to last exon
 				int ng=guidetrf[0].g;
 				GffObj *refg=nascentFrom(guides[ng]);
-				int i;
-				if(guides[ng]->strand=='+') { // forward nascent
-					i=1;
-					while(i<refg->exons.Count() && refg->exons[i]->start<guides[ng]->end) {
-						i++;
-					}
-					if(!i || i>=refg->exons.Count()) GError("Nascent %s and guide %s are not compatible!\n",guides[ng]->getID(),refg->getID());
-				}
-				else { // reverse strand
-					i=0;
-					while(i<refg->exons.Count() && refg->exons[i]->end<guides[ng]->start) {
-						i++;
-					}
-					if(!i || i>=refg->exons.Count()) GError("Nascent %s and guide %s are not compatible!\n",guides[ng]->getID(),refg->getID());
-				}
-				double ncov=get_cov(1,refg->exons[i-1]->end+1-bdata->start,refg->exons[i]->start-1-bdata->start,bdata->bpcov);
-				if(ncov>epsilon) {
-					ncov*=ERROR_PERC/(refg->exons[i]->start-1-refg->exons[i-1]->end);
-					if(ncov>ERROR_PERC) ncov=ERROR_PERC;
-					if(ncov<DBL_ERROR) ncov=DBL_ERROR;
-					int np=guidepred[ng];
-					if(np>-1) { // update last exon of prediction to reflect coverage
-						if(!pred[np]->exoncov.Last()) {
-							pred[np]->exoncov.Last()+=ncov;
-							pred[np]->cov+=ncov*(refg->exons[i]->start-1-refg->exons[i-1]->end)/pred[np]->tlen;
+				// This optional tweak needs a parent guide and the next parent
+				// exon after the nascent end; terminal or orphan nascents cannot
+				// be adjusted against a parent intron.
+				if(refg) {
+					int i;
+					if(guides[ng]->strand=='+') { // forward nascent
+						i=1;
+						while(i<refg->exons.Count() && refg->exons[i]->start<guides[ng]->end) {
+							i++;
 						}
-
 					}
-					else {
-						store_guide_nascent(pred,guides[ng],geneno,ncov);
-						guidepred[ng]=pred.Count()-1;
+					else { // reverse strand
+						i=0;
+						while(i<refg->exons.Count() && refg->exons[i]->end<guides[ng]->start) {
+							i++;
+						}
+					}
+					if(i>0 && i<refg->exons.Count()) {
+						double ncov=get_cov(1,refg->exons[i-1]->end+1-bdata->start,refg->exons[i]->start-1-bdata->start,bdata->bpcov);
+						if(ncov>epsilon) {
+							ncov*=ERROR_PERC/(refg->exons[i]->start-1-refg->exons[i-1]->end);
+							if(ncov>ERROR_PERC) ncov=ERROR_PERC;
+							if(ncov<DBL_ERROR) ncov=DBL_ERROR;
+							int np=guidepred[ng];
+							if(np>-1) { // update last exon of prediction to reflect coverage
+								if(!pred[np]->exoncov.Last()) {
+									pred[np]->exoncov.Last()+=ncov;
+									pred[np]->cov+=ncov*(refg->exons[i]->start-1-refg->exons[i-1]->end)/pred[np]->tlen;
+								}
+							}
+							else {
+								store_guide_nascent(pred,guides[ng],geneno,ncov);
+								guidepred[ng]=pred.Count()-1;
+							}
+						}
 					}
 				}
 			}
@@ -13039,36 +13042,41 @@ void guides_pushmaxflow_onestep(int gno,GIntHash<int>& gpos,GPVec<CGraphnode>& n
 			if(nasc) { // try to add extra coverages to last exon
 				int ng=guidetrf[g].g;
 				GffObj *refg=nascentFrom(guides[ng]);
-				int i;
-				if(guides[ng]->strand=='+') { // forward nascent
-					i=1;
-					while(i<refg->exons.Count() && refg->exons[i]->start<guides[ng]->end) {
-						i++;
-					}
-					if(!i || i>=refg->exons.Count()) GError("Nascent %s and guide %s are not compatible!\n",guides[ng]->getID(),refg->getID());
-				}
-				else { // reverse strand
-					i=0;
-					while(i<refg->exons.Count() && refg->exons[i]->end<guides[ng]->start) {
-						i++;
-					}
-					if(!i || i>=refg->exons.Count()) GError("Nascent %s and guide %s are not compatible!\n",guides[ng]->getID(),refg->getID());
-				}
-				double ncov=get_cov(1,refg->exons[i-1]->end+1-bdata->start,refg->exons[i]->start-1-bdata->start,bdata->bpcov);
-				if(ncov>epsilon) {
-					ncov*=ERROR_PERC/(refg->exons[i]->start-1-refg->exons[i-1]->end);
-					if(ncov>ERROR_PERC) ncov=ERROR_PERC;
-					if(ncov<DBL_ERROR) ncov=DBL_ERROR;
-					int np=guidepred[ng];
-					if(np>-1) { // update last exon of prediction to reflect coverage
-						if(!pred[np]->exoncov.Last()) {
-							pred[np]->exoncov.Last()+=ncov;
-							pred[np]->cov+=ncov*(refg->exons[i]->start-1-refg->exons[i-1]->end)/pred[np]->tlen;
+				// This optional tweak needs a parent guide and the next parent
+				// exon after the nascent end; terminal or orphan nascents cannot
+				// be adjusted against a parent intron.
+				if(refg) {
+					int i;
+					if(guides[ng]->strand=='+') { // forward nascent
+						i=1;
+						while(i<refg->exons.Count() && refg->exons[i]->start<guides[ng]->end) {
+							i++;
 						}
 					}
-					else {
-						store_guide_nascent(pred,guides[ng],geneno,ncov);
-						guidepred[ng]=pred.Count()-1;
+					else { // reverse strand
+						i=0;
+						while(i<refg->exons.Count() && refg->exons[i]->end<guides[ng]->start) {
+							i++;
+						}
+					}
+					if(i>0 && i<refg->exons.Count()) {
+						double ncov=get_cov(1,refg->exons[i-1]->end+1-bdata->start,refg->exons[i]->start-1-bdata->start,bdata->bpcov);
+						if(ncov>epsilon) {
+							ncov*=ERROR_PERC/(refg->exons[i]->start-1-refg->exons[i-1]->end);
+							if(ncov>ERROR_PERC) ncov=ERROR_PERC;
+							if(ncov<DBL_ERROR) ncov=DBL_ERROR;
+							int np=guidepred[ng];
+							if(np>-1) { // update last exon of prediction to reflect coverage
+								if(!pred[np]->exoncov.Last()) {
+									pred[np]->exoncov.Last()+=ncov;
+									pred[np]->cov+=ncov*(refg->exons[i]->start-1-refg->exons[i-1]->end)/pred[np]->tlen;
+								}
+							}
+							else {
+								store_guide_nascent(pred,guides[ng],geneno,ncov);
+								guidepred[ng]=pred.Count()-1;
+							}
+						}
 					}
 				}
 			}
