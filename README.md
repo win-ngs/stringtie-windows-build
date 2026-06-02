@@ -31,6 +31,7 @@ After extracting the archive, you should see:
 ```text
 stringtie-3.0.3-windows-ucrt64/
   stringtie.exe
+  prepDE.exe
   libgcc_s_seh-1.dll
   libiconv-2.dll
   libintl-8.dll
@@ -69,6 +70,52 @@ Assemble transcripts from an indexed BAM file:
 ```
 
 Generated text outputs from this Windows build are written with LF line endings.
+
+## prepDE.exe
+
+`prepDE.exe` is a standalone Windows executable built from StringTie's
+upstream `prepDE.py3` helper script. It generates gene-level and
+transcript-level count matrices from GTF files produced by `stringtie -e`.
+These CSV matrices are commonly used as input for downstream differential
+expression workflows such as DESeq2 or edgeR.
+
+Typical workflow:
+
+```powershell
+.\stringtie.exe -e -G annotation.gtf -o sample1\sample1.gtf sample1.bam
+.\stringtie.exe -e -G annotation.gtf -o sample2\sample2.gtf sample2.bam
+```
+
+Create a sample list file, for example `samples.txt`:
+
+```text
+sample1 sample1\sample1.gtf
+sample2 sample2\sample2.gtf
+```
+
+Generate count matrices:
+
+```powershell
+.\prepDE.exe -i samples.txt -g gene_count_matrix.csv -t transcript_count_matrix.csv
+```
+
+Use `-l` if the average read length is not the default value of 75:
+
+```powershell
+.\prepDE.exe -i samples.txt -l 100
+```
+
+`prepDE.exe` can also scan a directory containing one subdirectory per sample:
+
+```powershell
+.\prepDE.exe -i . -p "sample"
+```
+
+For all options:
+
+```powershell
+.\prepDE.exe --help
+```
 
 ## Source Tree
 
