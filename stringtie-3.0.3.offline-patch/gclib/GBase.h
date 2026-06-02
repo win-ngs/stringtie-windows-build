@@ -23,6 +23,7 @@
 #ifdef _WIN32
   #include <windows.h>
   #include <io.h>
+  #include <fcntl.h>
   // MinGW's sys/stat.h sees this off_t alias, so int64_t must be known first.
   #include <stdint.h>
   #define CHPATHSEP '\\'
@@ -204,6 +205,7 @@ int Grmdir(const char *path);
 void Gmktempdir(char* templ);
 
 bool haveStdInput(); //if stdin is from a pipe or redirection
+void GsetBinaryMode(FILE* stream); //disable Windows CRLF translation for a stream
 
 /****************************************************************************/
 
@@ -324,7 +326,7 @@ char* strupper(char * str);
 void* Gmemscan(void *mem, unsigned int len,
                   void *part, unsigned int partlen);
 
-FILE* Gfopen(const char *path, char *mode=NULL);
+FILE* Gfopen(const char *path, const char *mode=NULL);
 
 // test if a char is in a string:
 bool chrInStr(char c, const char* str);

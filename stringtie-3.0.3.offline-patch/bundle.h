@@ -376,8 +376,8 @@ struct BundleData {
 	 fname.appendfmt("_%d_guides.bed",idx);
 	 GStr fnasc("bundle");
 	 fnasc.appendfmt("_%d_nascents.bed",idx);
-	 FILE* f=fopen(fname.chars(),"w");
-	 FILE* fn=fopen(fnasc.chars(),"w");
+	 FILE* f=fopen(fname.chars(),"wb");
+	 FILE* fn=fopen(fnasc.chars(),"wb");
 	 for(int i=0;i<keepguides.Count();i++) {
 		 GffObj* g=keepguides[i];
 		 if (isNascent(g)) {

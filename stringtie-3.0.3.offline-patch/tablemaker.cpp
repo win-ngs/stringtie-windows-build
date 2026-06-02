@@ -38,7 +38,7 @@ FILE* rc_fwopen(const char* fname) {
  //fpath += "/";
  //fpath += fname;
  fpath += ".ctab";
- FILE* fh=fopen(fpath.chars(), "w");
+ FILE* fh=fopen(fpath.chars(), "wb");
  if (fh==NULL) {
    fprintf(stderr, "Error: cannot create file %s\n",
         fpath.chars());
@@ -61,7 +61,7 @@ FILE* rc_frenopen(const char* fname) {
 	if (rename(fpath.chars(), fren.chars())!=0) {
 		 GError("Error: cannot rename %s to %s!\n", fpath.chars(), fren.chars());
 	}
-	FILE* fh=fopen(fren.chars(), "r");
+	FILE* fh=fopen(fren.chars(), "rb");
 	if (fh==NULL) {
 	  GError("Error: cannot open file %s\n", fren.chars());
 	}

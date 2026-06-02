@@ -197,7 +197,7 @@ class GFastaDb {
                  if (faIdx->getCount()==0) GError("Error: no fasta records found!\n");
                  if (writeIndexFile) {
                      //GMessage("Fasta index rebuilt.\n");
-                     FILE* fcreate=fopen(fainame, "w");
+                     FILE* fcreate=fopen(fainame, "wb");
                      char* idxfname=fainame;
                      if (fcreate==NULL) {
                         GMessage("Warning: cannot create fasta index file %s! (permissions?)\n", fainame);
@@ -205,7 +205,7 @@ class GFastaDb {
                         	//try cwd
                         	idxfname=fainamecwd;
                         	GMessage("   Attempting to create the index in the current directory..\n");
-                        	if ((fcreate=fopen(fainamecwd, "w"))==NULL)
+                        	if ((fcreate=fopen(fainamecwd, "wb"))==NULL)
                         		GError("Error: cannot create fasta index file %s!\n", fainamecwd);
                         }
                      }

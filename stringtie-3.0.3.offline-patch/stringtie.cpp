@@ -283,7 +283,7 @@ int waitForData(BundleData* bundles);
 		  if (fn.rindex('.')>0)
 			  fn=fn.cut(fn.rindex('.'));
 		  fn+="_alndbg.tab";
-		  fdbgaln=fopen(fn.chars(), "w");
+		  fdbgaln=fopen(fn.chars(), "wb");
 		  if (fdbgaln==NULL) GError("Error creating file %s\n", fn.chars());
 	  }
 	  //              gseqname, flags, readname, start, end, cigar, nh, hi
@@ -299,6 +299,7 @@ int waitForData(BundleData* bundles);
 TInputFiles bamreader;
 
 int main(int argc, char* argv[]) {
+ GsetBinaryMode(stdout);
 
  // == Process arguments.
  GArgs args(argc, argv,
@@ -883,7 +884,7 @@ if(!mergeMode) {
 
 	f_out=stdout;
 	if(outfname!="stdout") {
-		f_out=fopen(outfname.chars(), "w");
+		f_out=fopen(outfname.chars(), "wb");
 		if (f_out==NULL) GError("Error creating output file %s\n", outfname.chars());
 	}
 
@@ -895,13 +896,13 @@ if(!mergeMode) {
 
 	FILE *g_out=NULL;
 	if(geneabundance) {
-		g_out=fopen(genefname.chars(),"w");
+		g_out=fopen(genefname.chars(),"wb");
 		if (g_out==NULL)
 			GError("Error creating gene abundance output file %s\n", genefname.chars());
 		fprintf(g_out,"Gene ID\tGene Name\tReference\tStrand\tStart\tEnd\tCoverage\tFPKM\tTPM\n");
 	}
 
-	FILE* ftmp_in=fopen(tmpfname.chars(),"rt");
+	FILE* ftmp_in=fopen(tmpfname.chars(),"rb");
 	if (ftmp_in!=NULL) {
 		char* linebuf=NULL;
 		int linebuflen=5000;
@@ -1280,7 +1281,7 @@ void processOptions(GArgs& args) {
 	s=args.getOpt('C');
 	if (!s.is_empty()) {
 		if(!guided) GError("Error: invalid -C usage, GFF reference not given (-G option required).\n");
-		c_out=fopen(s.chars(), "w");
+		c_out=fopen(s.chars(), "wb");
 		if (c_out==NULL) GError("Error creating output file %s\n", s.chars());
 	}
 	int numbam=args.startNonOpt();
@@ -1372,14 +1373,14 @@ void processOptions(GArgs& args) {
 #ifdef B_DEBUG
 	 GStr dbgfname(tmpfname);
 	 dbgfname+=".dbg";
-	 dbg_out=fopen(dbgfname.chars(), "w");
+	 dbg_out=fopen(dbgfname.chars(), "wb");
 	 if (dbg_out==NULL) GError("Error creating debug output file %s\n", dbgfname.chars());
 #endif
 
 	 if(mergeMode) {
 		 f_out=stdout;
 		 if(outfname!="stdout") {
-			 f_out=fopen(outfname.chars(), "w");
+			 f_out=fopen(outfname.chars(), "wb");
 			 if (f_out==NULL) GError("Error creating output file %s\n", outfname.chars());
 		 }
 		 fprintf(f_out,"# ");
@@ -1388,7 +1389,7 @@ void processOptions(GArgs& args) {
 	 }
 	 else {
 		 tmpfname+=".tmp";
-		 f_out=fopen(tmpfname.chars(), "w");
+		 f_out=fopen(tmpfname.chars(), "wb");
 		 if (f_out==NULL) GError("Error creating output file %s\n", tmpfname.chars());
 	 }
 }

@@ -55,3 +55,35 @@
 - Location: after the existing `flags=0;` in each GffObj constructor.
 - Change: explicitly zero `gff_level` and `flag_USER_FLAGS` as well.
 - Reason: `gff_level:4` and `flag_USER_FLAGS:8` share a union with the 32-bit `flags`, but they are declared as `unsigned int` bitfields after a run of `bool` bitfields. Under MSYS2 MinGW/UCRT GCC the type change starts a new storage unit, so those two fields are NOT aliased by `flags`; `flags=0` therefore leaves them uninitialized. They are then read from `operator new` heap memory, which is zeroed on Linux (fresh pages) but arbitrary on Windows and varies per run. `gff_level` feeds the guide location sort (`gfo_cmpByLoc`), so guides at identical coordinates were ordered nondeterministically; `flag_USER_FLAGS` backs `getGuideStatus()` and `isNascent()`, so guide/nascent classification was nondeterministic. The combined effect was that every guided/nascent test (`short_guided`, `mix_reads_guided`, `-N`, `--nasc`) produced different output each run and never matched the expected GTF. Zeroing the two fields makes all bundled tests deterministic and identical to the upstream expected output.
+
+## LF-only text output on Windows
+
+- File: `stringtie-3.0.3.offline-patch/gclib/GBase.h` and `stringtie-3.0.3.offline-patch/gclib/GBase.cpp`
+- Location: `_WIN32` support code and shared file/stream helpers.
+- Change: include `<fcntl.h>`, add `GsetBinaryMode(FILE*)`, and update the `Gfopen()` declaration/definition to accept `const char*` modes.
+- Reason: Windows text streams translate `\n` to CRLF. The new helper disables this translation for already-open streams such as `stdout`, while binary file open modes handle regular files.
+
+- File: `stringtie-3.0.3.offline-patch/stringtie.cpp`
+- Location: `main()`, final GTF output setup, temporary GTF setup/reread, `-A` gene-abundance output, `-C` covered-reference output, and debug output blocks.
+- Change: set `stdout` to binary mode at process startup; open generated text outputs with `wb`; reread StringTie's internal temporary GTF with `rb` instead of `rt`.
+- Reason: normal GTF output can go either to a file or to `stdout`. Both paths must avoid Windows newline translation so generated GTF and TSV files consistently use LF line endings.
+
+- File: `stringtie-3.0.3.offline-patch/tablemaker.cpp`
+- Location: `rc_fwopen()` and `rc_frenopen()`.
+- Change: open Ballgown `.ctab` outputs with `wb` and reread temporary renamed `.ctab` files with `rb`.
+- Reason: Ballgown table files are text outputs produced by StringTie. They should use LF line endings just like the main GTF output.
+
+- File: `stringtie-3.0.3.offline-patch/tmerge.cpp`
+- Location: `TInputFiles::convert2BAM()`.
+- Change: open the temporary SAM header file with `wb`.
+- Reason: `--merge` creates a temporary SAM file before converting input transcripts to BAM. Opening it in binary mode prevents CRLF conversion in this intermediate text file.
+
+- File: `stringtie-3.0.3.offline-patch/gclib/GFaSeqGet.h` and `stringtie-3.0.3.offline-patch/gclib/GFastaIndex.cpp`
+- Location: FASTA index creation paths.
+- Change: open generated FASTA index files with `wb`.
+- Reason: StringTie can create `.fai` index files when reference FASTA support is used. These generated text files should also use LF line endings.
+
+- File: `stringtie-3.0.3.offline-patch/bundle.h`
+- Location: `BundleData::printBundleGuides()`.
+- Change: open debug BED outputs with `wb`.
+- Reason: this debug-only helper is not used in normal release output, but it is still StringTie-owned text output and should follow the same LF-only rule when enabled.

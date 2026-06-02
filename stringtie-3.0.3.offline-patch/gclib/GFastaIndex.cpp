@@ -146,7 +146,7 @@ int GFastaIndex::buildIndex() {
 int GFastaIndex::storeIndex(const char* finame) { //write the hash to a file
     if (records.Count()==0)
        GError("Error at GFastaIndex:storeIndex(): no records found!\n");
-    FILE* fai=fopen(finame, "w");
+    FILE* fai=fopen(finame, "wb");
     if (fai==NULL) GError("Error creating fasta index file: %s\n",finame);
     int rcount=storeIndex(fai);
     GFREE(fai_name);

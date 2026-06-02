@@ -247,7 +247,15 @@ bool haveStdInput() {
 #endif
 }
 
-FILE* Gfopen(const char *path, char *mode) {
+void GsetBinaryMode(FILE* stream) {
+#ifdef _WIN32
+	if (stream!=NULL) _setmode(_fileno(stream), _O_BINARY);
+#else
+	(void)stream;
+#endif
+}
+
+FILE* Gfopen(const char *path, const char *mode) {
 	FILE* f=NULL;
 	if (mode==NULL) f=fopen(path, "rb");
 	    	   else f=fopen(path, mode);

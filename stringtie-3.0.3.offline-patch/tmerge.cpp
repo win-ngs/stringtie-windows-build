@@ -23,7 +23,7 @@ GStr TInputFiles::convert2BAM(GStr& gtf, int idx) {
   samhname+=".sam";
   tmpfiles.Add(bamfname);
   tmpfiles.Add(samhname);
-  FILE* samh=fopen(samhname.chars(), "w");
+  FILE* samh=fopen(samhname.chars(), "wb");
   if (samh==NULL) GError("Error creating file: %s\n",samhname.chars());
   fprintf(samh, "@HD\tVN:1.0\tSO:coordinate\n");
   //load GTF as sorted
@@ -169,4 +169,3 @@ void TInputFiles::stop() {
 	 }
  }
 }
-
