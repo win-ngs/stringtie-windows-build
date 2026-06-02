@@ -23,6 +23,8 @@
 #ifdef _WIN32
   #include <windows.h>
   #include <io.h>
+  // MinGW's sys/stat.h sees this off_t alias, so int64_t must be known first.
+  #include <stdint.h>
   #define CHPATHSEP '\\'
   #undef off_t
   #define off_t int64_t

@@ -294,7 +294,14 @@ config.h:
 	echo '#ifndef __APPLE__' >> $@
 	echo '#define HAVE_LZMA_H 1' >> $@
 	echo '#endif' >> $@
-	echo '#define HAVE_DRAND48 1' >> $@
+	# MSYS2 UCRT64/MinGW does not provide drand48; leave HAVE_DRAND48
+	# undefined there so htslib builds its bundled os/rand.c fallback.
+	case "$${MSYSTEM}:$$(uname -s 2>/dev/null)" in \
+	    UCRT64:*|MINGW32:*|MINGW64:*|*:MINGW*) \
+	        echo '/* MSYS2 UCRT64/MinGW: use bundled os/rand.c fallback. */' >> $@ ;; \
+	    *) \
+	        echo '#define HAVE_DRAND48 1' >> $@ ;; \
+	esac
 	## gpertea: add libdeflage, do not link libcurl by default
 	echo '#define HAVE_LIBDEFLATE 1' >> $@
 	#echo '#define HAVE_LIBCURL 1' >> $@

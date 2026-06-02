@@ -1,1 +1,5 @@
+# Generated build and release outputs.
 dist/
+*.o
+*.a
+*.exe
