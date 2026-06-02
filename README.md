@@ -32,9 +32,12 @@ After extracting the archive, you should see:
 stringtie-3.0.3-windows-ucrt64/
   stringtie.exe
   libgcc_s_seh-1.dll
+  libiconv-2.dll
+  libintl-8.dll
   libstdc++-6.dll
   libwinpthread-1.dll
   libsystre-0.dll
+  libtre-5.dll
   zlib1.dll
   README.md
   LICENSE.md
@@ -89,9 +92,6 @@ PATCHES.md
 TEST_NOTES.md
 ```
 
-Generated build outputs and release ZIP files under `dist/` are not meant to be
-committed to git.
-
 ## Building from Source
 
 You do not need to build StringTie yourself if you only want to use the released
@@ -117,24 +117,10 @@ cd stringtie-windows-build/stringtie-3.0.3.offline-patch
 make release
 ```
 
-Because this is run from an MSYS2-UCRT64 shell, manual `PATH=/ucrt64/bin:...`
-setup is not needed.
-
 The executable is created as:
 
 ```text
 stringtie-3.0.3.offline-patch/stringtie.exe
-```
-
-For a release package, copy the executable and required UCRT64 runtime DLLs into
-`dist/stringtie-3.0.3-windows-ucrt64/`, then run the shared win-ngs release
-automation from the `win-ngs` workspace root:
-
-```powershell
-pwsh -NoProfile -File .\automation\Invoke-WinNgsRelease.ps1 `
-  -Config .\automation\projects\stringtie.json `
-  -Stage Package `
-  -Clobber
 ```
 
 ## Validation Performed
@@ -151,16 +137,3 @@ runtime fixes are:
 - explicitly initialize `GffObj` bitfields that made guided/nascent output
   nondeterministic on UCRT64
 - write generated text outputs with LF line endings on Windows
-
-## Release Automation
-
-Common win-ngs release automation is kept outside this repository at:
-
-```text
-../automation/Invoke-WinNgsRelease.ps1
-../automation/projects/stringtie.json
-```
-
-The automation checks required documents, creates the release ZIP, uploads it to
-GitHub Releases, and can verify the uploaded asset by downloading it and
-comparing SHA256 hashes.
